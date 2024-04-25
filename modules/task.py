@@ -1,4 +1,5 @@
 import re
+import time
 
 from findForks import find_forks
 from clearTransactions import clear_transactions
@@ -9,9 +10,9 @@ from linearBlockFinder import get_block_by_index_linear
 from binaryBlockFinder import get_block_by_index_binary
 
 transactions = parse_transactions()
-selectionSort = sort_by_selection(transactions)
+# selectionSort = sort_by_selection(transactions)
 bubbleSort = sort_by_bubble(transactions)
-integratedSort = sorted(transactions, key=lambda mas: mas['index'])
+# integratedSort = sorted(transactions, key=lambda mas: mas['index'])
 clearTransactions = clear_transactions(transactions)
 clearSortedTransactions = clear_transactions(bubbleSort)
 forks = find_forks(bubbleSort)
@@ -107,3 +108,47 @@ def runSorts():
   get_block_by_index_binary(clearSortedTransactions, round(len(clearSortedTransactions) / 2))
   get_block_by_index_binary(clearSortedTransactions, len(clearSortedTransactions) - 21)
   get_block_by_index_binary(clearSortedTransactions, 21121)
+
+def runTransactionsInfo():
+  blocks = {}
+  users = {}
+  timeGroups = {}
+  trnsactionsSum = 0
+  transactionsCount = 0
+
+  for i in range(len(bubbleSort)):
+    blocks[bubbleSort[i]['index']] = len(bubbleSort[i]['transactions'])
+  print(blocks)
+  print(f'Общее количество транзакций: {sum(list(blocks.values()))}\n')
+
+  for i in range(len(bubbleSort)):
+    if bubbleSort[i]['transactions'][-1]['to'] in users:
+      users[bubbleSort[i]['transactions'][-1]['to']] += bubbleSort[i]['transactions'][-1]['value']
+    else:
+      users[bubbleSort[i]['transactions'][-1]['to']] = bubbleSort[i]['transactions'][-1]['value']
+  print(users)
+
+  for i in users:
+    if users[i] == max(users.values()):
+      print('Пользователь с максимальным вознаграждением: ')
+      print(f'{i}: {users[i]}\n')
+    if users[i] == min(users.values()):
+      print('Пользователь с минимальным вознаграждением: ')
+      print(f'{i}: {users[i]}\n')
+
+  for i in bubbleSort:
+    for j in i['transactions']:
+      if j['from'] != "SYSTEM":
+        trnsactionsSum += j['value']
+        transactionsCount += 1
+  print(f'Среднее значение перевода в транзакциях: {trnsactionsSum / transactionsCount}\n')
+
+  for i in bubbleSort:
+    if time.strftime("%H:%M", time.gmtime(i['timestamp'])) in timeGroups.keys():
+      timeGroups[time.strftime("%H:%M", time.gmtime(i['timestamp']))].append(i['index'])
+    else:
+      timeGroups[time.strftime("%H:%M", time.gmtime(i['timestamp']))] = [i['index']]
+
+  for i in timeGroups:
+    timeGroups[i] = len(timeGroups[i])
+  print(timeGroups, '\n')
